@@ -24,6 +24,14 @@ function runElectron (resolvedPath) {
   var electron = spawn(resolvedPath, args, { stdio: [process.stdin, process.stdout, 'pipe'] })
   electron.stderr.on('data', function (data) {
     var str = data.toString('utf8')
+
+    // If there was an uncaught exception, fail tests.
+    if (str.match(/Uncaught Error:/g)) {
+      process.stderr.write(data)
+      electron.stderr.pause()
+      return process.exit(1)
+    }
+
     // it's Chromium, STFU
     if (str.match(/^\[\d+\:\d+/)) return
     process.stderr.write(data)
