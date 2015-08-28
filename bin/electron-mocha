@@ -21,7 +21,7 @@ which('electron', function (err, resolvedPath) {
 function runElectron (resolvedPath) {
   var args = process.argv.slice(2)
   args.unshift(path.resolve(path.join(__dirname, '../index.js')))
-  var electron = spawn(resolvedPath, args, { stdio: [process.stdin, process.stdout, 'pipe'] })
+  var electron = spawn(resolvedPath, args, { stdio: [process.stdin, 'pipe', 'pipe'] })
   electron.stderr.on('data', function (data) {
     var str = data.toString('utf8')
 
@@ -35,5 +35,17 @@ function runElectron (resolvedPath) {
     // it's Chromium, STFU
     if (str.match(/^\[\d+\:\d+/)) return
     process.stderr.write(data)
+  })
+
+  electron.stdout.on('data', function(data) {
+    var str = data.toString('utf8')
+
+    if (str.indexOf('Electron_Exit_Code:') > -1) {
+      var split = str.split(': ')
+      var exit_code = parseInt(split[split.length - 1])
+      process.exit(exit_code)
+    }
+
+    process.stdout.write(data)
   })
 }
