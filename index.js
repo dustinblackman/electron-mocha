@@ -45,6 +45,13 @@ function exit (code) {
     // app.quit() does not set code
     // bug in Electron, see issue: https://github.com/atom/electron/issues/1983
     console.log('Electron_Exit_Code: ' + code)
-    app.quit(code)
+    if (process.platform == 'win32' && process.env.EXITCODE_PATH) {
+      fs.writeFile(process.env.EXITCODE_PATH, code, {encoding: 'utf8'}, function(err) {
+        if (err) console.log(err);
+        app.quit(code);
+      })
+    } else {
+      app.quit(code)
+    }
   })
 }
