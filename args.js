@@ -32,10 +32,11 @@ function parse (argv) {
   })
 
   module.paths.push(process.cwd(), path.join(process.cwd(), 'node_modules'))
+  var requires = [];
   program.on('require', function (mod) {
     var abs = fs.existsSync(mod) || fs.existsSync(mod + '.js')
     if (abs) mod = path.resolve(mod)
-    require(mod)
+    requires.push(mod);
   })
 
   program.parse(process.argv)
@@ -48,6 +49,7 @@ function parse (argv) {
     delete argData[key]
   })
 
+  argData.requires = requires;
   return argData
 }
 

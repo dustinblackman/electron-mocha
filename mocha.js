@@ -9,6 +9,12 @@ function createFromArgs (args) {
   // infinite stack traces (this was pulled from Mocha source, may not be necessary)
   Error.stackTraceLimit = Infinity
 
+  if (args.requires && process.versions.electron && window) {
+    args.requires.forEach(function(mod) {
+      require(mod);
+    });
+  }
+
   mocha.reporter(args.reporter)
   mocha.ui(args.ui)
 
