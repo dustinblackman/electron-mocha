@@ -3,6 +3,7 @@
 var fs = require('fs')
 var path = require('path')
 var spawn = require('child_process').spawn
+var stripAnsi = require('strip-ansi')
 var which = require('which')
 
 which('electron', function (err, resolvedPath) {
@@ -28,7 +29,7 @@ function runElectron (resolvedPath) {
   var electron = spawn(resolvedPath, args, { stdio: [process.stdin, 'pipe', 'pipe'] })
   electron.stderr.on('data', function (data) {
     var str = data.toString('utf8')
-    if (mochaLog) mochaLog.write(str)
+    if (mochaLog) mochaLog.write(stripAnsi(str))
 
     // If there was an uncaught exception, fail tests.
     if (str.match(/Uncaught Error:/g)) {
@@ -45,7 +46,7 @@ function runElectron (resolvedPath) {
 
   electron.stdout.on('data', function(data) {
     var str = data.toString('utf8')
-    if (mochaLog) mochaLog.write(str)
+    if (mochaLog) mochaLog.write(stripAnsi(str))
 
     if (str.indexOf('Electron_Exit_Code:') > -1) {
       var split = str.split(': ')
