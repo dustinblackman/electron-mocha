@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var fs = require('fs')
 var path = require('path')
 var spawn = require('child_process').spawn
 var which = require('which')
@@ -21,14 +22,19 @@ which('electron', function (err, resolvedPath) {
 function runElectron (resolvedPath) {
   var args = process.argv.slice(2)
   args.unshift(path.resolve(path.join(__dirname, '../index.js')))
+
+  if (process.env.MOCHA_LOG) var mochaLog = fs.createWriteStream(process.env.MOCHA_LOG, {flags: 'w'});
+
   var electron = spawn(resolvedPath, args, { stdio: [process.stdin, 'pipe', 'pipe'] })
   electron.stderr.on('data', function (data) {
     var str = data.toString('utf8')
+    if (mochaLog) mochaLog.write(str)
 
     // If there was an uncaught exception, fail tests.
     if (str.match(/Uncaught Error:/g)) {
       process.stderr.write(data)
       electron.stderr.pause()
+      if (mochaLog) mochaLog.end()
       return process.exit(1)
     }
 
@@ -39,10 +45,12 @@ function runElectron (resolvedPath) {
 
   electron.stdout.on('data', function(data) {
     var str = data.toString('utf8')
+    if (mochaLog) mochaLog.write(str)
 
     if (str.indexOf('Electron_Exit_Code:') > -1) {
       var split = str.split(': ')
       var exit_code = parseInt(split[split.length - 1])
+      if (mochaLog) mochaLog.end()
       process.exit(exit_code)
     }
 
