@@ -66,6 +66,7 @@ function writeError (data) {
 }
 
 function exit (code) {
+  console.error('electron_exit_code: ' + code);
   fs.remove(browserDataPath, function (err) {
     if (err) console.error(err)
     process.exit(code)

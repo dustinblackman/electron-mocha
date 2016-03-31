@@ -30,6 +30,13 @@ function runElectron (resolvedPath) {
     var str = data.toString('utf8')
     // it's Chromium, STFU
     if (str.match(/^\[\d+\:\d+/)) return
+    if (str.indexOf('electron_exit_code:') > -1) {
+      var exit_code = str.split(': ')
+      exit_code = Number(exit_code[exit_code.length - 1])
+      if (exit_code > 0) process.exit(exit_code);
+      return;
+    }
+
     process.stderr.write(data)
   })
   electron.on('exit', function (code) { process.exit(code) })
